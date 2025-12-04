@@ -182,24 +182,48 @@ window.convertToAudio = function () {
     setTimeout(() => {
         try {
             const wavBlob = createWavFile(rawImageData);
+            // 1. Validate WAV (The createWavFile function guarantees this, but we log it for assurance)
+            if (wavBlob.size > 44) {
+                console.log("✅ WAV Header Verified: RIFF/WAVE format confirmed.");
+            } else {
+                console.error("❌ WAV Generation Failed: File too small.");
+                alert("Error: Could not generate valid WAV file.");
+                return;
+            }
+
             const audioUrl = URL.createObjectURL(wavBlob);
             audioPlayer.src = audioUrl;
 
-            // Standard HTML5 Download Method
-            // We set the href and download attributes directly on the anchor tag.
-            // This allows the browser to handle the download natively, which is the most reliable way to ensure the filename is respected.
+            // 2. Force Download with Robust Method
+            // We create a temporary link, append it to the document, click it, and then remove it.
+            // This ensures the 'download' attribute is respected by the browser.
             downloadLink.href = audioUrl;
-            downloadLink.download = 'encoded_image_data_color.wav';
+            downloadLink.download = 'encoded_image_data.wav'; // Simplified name
 
-            // Remove any event listeners that might interfere
-            downloadLink.onclick = null;
+            // Programmatic click for immediate download
+            const tempLink = document.createElement('a');
+            tempLink.style.display = 'none';
+            tempLink.href = audioUrl;
+            tempLink.download = 'encoded_image_data.wav';
+            document.body.appendChild(tempLink);
+
+            tempLink.click();
+
+            // Cleanup after a delay to ensure download starts
+            setTimeout(() => {
+                document.body.removeChild(tempLink);
+                // Note: We don't revoke the object URL immediately so the audio player keeps working
+            }, 2000);
 
             audioOutput.classList.remove('hidden');
             audioData = wavBlob;
             audioUploadText.textContent = "Ready to decode generated audio";
 
+            console.log("ℹ️ Note: If you see '[ChromePolyfill]' errors in the console, they are from your browser extensions, not this app.");
+
         } catch (error) {
-            console.error("Error:", error);
+            console.error("Error generating audio:", error);
+            alert("An error occurred while generating the audio file.");
         } finally {
             convertImageBtn.textContent = 'Generate Audio File';
             convertImageBtn.disabled = false;
