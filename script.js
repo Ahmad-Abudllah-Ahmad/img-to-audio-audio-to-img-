@@ -189,16 +189,8 @@ window.convertToAudio = function () {
             downloadLink.href = audioUrl;
             downloadLink.download = 'encoded_image_data_color.wav';
 
-            // Force download with correct filename on click
-            downloadLink.onclick = function (e) {
-                e.preventDefault();
-                const a = document.createElement('a');
-                a.href = audioUrl;
-                a.download = 'encoded_image_data_color.wav';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
+            // Remove any previous onclick handlers to allow default behavior
+            downloadLink.onclick = null;
 
             audioOutput.classList.remove('hidden');
             audioData = wavBlob;
