@@ -186,11 +186,19 @@ window.convertToAudio = function () {
             audioPlayer.src = audioUrl;
 
             // Update download link
-            downloadLink.href = audioUrl;
-            downloadLink.download = 'encoded_image_data_color.wav';
-
-            // Remove any previous onclick handlers to allow default behavior
-            downloadLink.onclick = null;
+            downloadLink.href = '#';
+            downloadLink.onclick = function (e) {
+                e.preventDefault();
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = audioUrl;
+                a.download = 'encoded_image_data_color.wav';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                }, 100);
+            };
 
             audioOutput.classList.remove('hidden');
             audioData = wavBlob;
